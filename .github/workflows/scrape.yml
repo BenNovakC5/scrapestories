@@ -1,16 +1,16 @@
 name: Scrape Microsoft Customer Stories
 
 on:
-  workflow_dispatch:  # Manual trigger
+  workflow_dispatch:
   schedule:
-    - cron: '0 6 * * 1'  # Runs every Monday at 6:00 AM UTC
+    - cron: '0 6 * * 1'  # Every Monday at 6am UTC
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Set up Python 3.11
@@ -18,24 +18,25 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install Python dependencies
+      - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          pip install --upgrade pip
           pip install -r requirements.txt
           playwright install
 
-      - name: Run scraper script
+      - name: Run summary scraper
         run: python scrape_microsoft_stories.py
 
-      - name: Commit CSV output
+      - name: Run detail enrichment (first 5 rows only)
+        run: |
+          python -c "import pandas as pd; df = pd.read_csv('microsoft_customer_stories.csv').head(5); df.to_csv('test_stories.csv', index=False)"
+          sed -i 's/microsoft_customer_stories.csv/test_stories.csv/' scrape_story_details.py
+          python scrape_story_details.py
+
+      - name: Commit enriched CSV
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add microsoft_customer_stories.csv
-          git commit -m "Update customer stories CSV" || echo "No changes to commit"
-
-      - name: Push changes using GITHUB_TOKEN
-        uses: ad-m/github-push-action@v0.6.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: main
+          git add microsoft_customer_stories_enriched.csv
+          git commit -m "Update enriched customer stories" || echo "No changes"
+          git push
