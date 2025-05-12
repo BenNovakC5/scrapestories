@@ -1,0 +1,36 @@
+name: Scrape Microsoft Customer Stories
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * 1'  # every Monday at 6am UTC
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          playwright install
+
+      - name: Run scraper
+        run: python scrape_microsoft_stories.py
+
+      - name: Commit and push CSV
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add microsoft_customer_stories.csv
+          git commit -m "Update customer stories CSV" || echo "No changes to commit"
+          git push
