@@ -2,7 +2,7 @@ import asyncio
 import pandas as pd
 from playwright.async_api import async_playwright
 
-MAX_PAGES = 314  # Adjust to 313+ for full run
+MAX_PAGES = 5  # Adjust to 313+ for full run
 
 async def scrape_stories():
     data = []
