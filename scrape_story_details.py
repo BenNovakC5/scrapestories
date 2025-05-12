@@ -56,7 +56,7 @@ async def extract_details(page, url):
     return details
 
 async def enrich_csv():
-    base_data = pd.read_csv("microsoft_customer_stories copy.csv")
+    base_data = pd.read_csv("test_stories.csv")
     enriched_data = []
 
     async with async_playwright() as p:
